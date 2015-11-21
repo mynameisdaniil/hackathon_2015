@@ -75,6 +75,8 @@ app.get('/:token/lists', function (req, res) {
       err(e);
       return res.sendStatus(500);
     }
+    if (!list)
+      return reply(res, []);
     reply(res, decode(list));
   });
 });
@@ -99,6 +101,8 @@ app.get('/:token/lists/:list_id', function (req, res) {
       err(e);
       return res.sendStatus(500);
     }
+    if (!list)
+      return reply(res, []);
     reply(res, decode(list));
   });
 });
