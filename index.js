@@ -111,6 +111,18 @@ app.post('/:token/play/tracking', function (req, res) {
     });
 });
 
+app.get('/:token/play/tracking', function (req, res) {
+  log(req.method, req.path, req.params.token);
+  var token = req.params.token;
+  redis.get('session:' + token + ':now', function (e, now) {
+    if (e) {
+      err(e);
+      return res.sendStatus(500);
+    }
+    reply(res, encode(now));
+  });
+});
+
 app.post('/:token/play/control', function (req, res) {
   log(req.method, req.path, req.params.token);
   var key = 'session:' + req.params.token + ':control';
