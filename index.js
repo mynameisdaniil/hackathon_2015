@@ -46,7 +46,7 @@ app.get('/:token/lists', function (req, res) {
     }
     if (!list)
       return reply(res, []);
-    reply(res, decode(list));
+    reply(res, decode(list).filter(function (item) { return item.active; }));
   });
 });
 
