@@ -77,7 +77,7 @@ app.get('/:token/lists/:list_id', function (req, res) {
 });
 
 app.post('/:token/lists/:list_id', function (req, res) {
-  log(req.method, req.path, req.params.token, req.params.list_id);
+  log(req.method, req.path, req.params.token, req.params.list_id, req.body);
   var key = 'lists:' + req.params.token + ':' + req.params.list_id;
   redis.set(key, encode(req.body), function (e, list) {
     if (e) {
