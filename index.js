@@ -79,12 +79,12 @@ app.get('/:token/lists/:list_id', function (req, res) {
 app.post('/:token/lists/:list_id', function (req, res) {
   log(req.method, req.path, req.params.token, req.params.list_id);
   var key = 'lists:' + req.params.token + ':' + req.params.list_id;
-  redis.set(key, req.body, function (e, list) {
+  redis.set(key, encode(req.body), function (e, list) {
     if (e) {
       err(e);
       return res.sendStatus(500);
     }
-    reply(res, decode(list));
+    res.sendStatus(200);
   });
 });
 
