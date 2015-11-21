@@ -24,9 +24,7 @@ app.post('/new', function (req, res) {
       redis.setnx(key, uuid(), this);
     })
     .seq(function (result) {
-      if (result === 0)
-        return redis.get(key, this);
-      this();
+      redis.get(key, this);
     })
     .finally(function (e, token) {
       if (e)
