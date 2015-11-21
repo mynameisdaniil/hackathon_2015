@@ -123,6 +123,16 @@ app.post('/:token/play/control', function (req, res) {
   });
 });
 
+app.get('/flushall', function (req, res) {
+  redis.flushall(function (e) {
+    if (e) {
+      err(e);
+      return res.sendStatus(500);
+    }
+    res.sendStatus(200);
+  });
+});
+
 app.get('/:token/play/control', function (req, res) {
   log(req.method, req.path, req.params.token);
   var key = 'session:' + req.params.token + ':control';
