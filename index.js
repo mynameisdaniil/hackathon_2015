@@ -16,37 +16,6 @@ var reply = function (res, obj) {
   res.send(encode(obj) + '\n');
 };
 
-var yt_movie = function () {
-  return {
-    id: 'e21aad67-a7f6-4ed1-9a8a-ced76188fe56',
-    thumbnails: {
-      somekey: {
-        url: 'http://ya.ru',
-        width: 100,
-        height: 500
-      },
-      another_key: {
-        url: '',
-        width: 800,
-        height: 600
-      }
-    },
-    title: 'Hello there',
-    description: 'ololo trololo lalala',
-    channel: 'OLOLO',
-    etag: '15-3JQVFLwoG6yepWGqlDPA/A'
-  };
-};
-
-var yt_list = function () {
-  return {
-    title: 'lalala',
-    url: 'http://',
-    id: 'e21aad67-a7f6-4ed1-9a8a-ced76188fe56',
-    enabled: true
-  };
-};
- 
 app.post('/new', function (req, res) {
   log(req.method, req.path, req.body);
   var key = 'users:' + req.body.email;
@@ -84,12 +53,12 @@ app.get('/:token/lists', function (req, res) {
 app.post('/:token/lists', function (req, res) {
   log(req.method, req.path, req.params.token, req.body);
   var key = 'lists:' + req.params.token;
-  redis.set(key, req.body, function (e, list) {
+  redis.set(key, encode(req.body), function (e, list) {
     if (e) {
       err(e);
       return res.sendStatus(500);
     }
-    reply(res, decode(list));
+    res.sendStatus(200);
   });
 });
 
