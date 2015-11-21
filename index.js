@@ -46,7 +46,7 @@ app.get('/:token/lists', function (req, res) {
     }
     if (!list)
       return reply(res, []);
-    reply(res, decode(list).filter(function (item) { return item.active; }));
+    reply(res, decode(list));
   });
 });
 
@@ -114,6 +114,9 @@ app.post('/:token/play/tracking', function (req, res) {
 app.post('/:token/play/control', function (req, res) {
   log(req.method, req.path, req.params.token);
   var key = 'session:' + req.params.token + ':control';
+  var data = req.body;
+  if (data.timeout)
+    setTimeout(function () {}, data.timeout);
   redis.set(key, encode(req.body), function (e) {
     if (e) {
       err(e);
