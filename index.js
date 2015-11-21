@@ -119,7 +119,9 @@ app.get('/:token/play/tracking', function (req, res) {
       err(e);
       return res.sendStatus(500);
     }
-    reply(res, encode(now));
+    if (!now)
+      return reply(res, {});
+    reply(res, now);
   });
 });
 
