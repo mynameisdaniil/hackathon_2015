@@ -218,7 +218,7 @@ app.get('/:token/play/tracking', function (req, res) {
     }
     if (!now)
       return reply(res, {});
-    reply(res, now);
+    reply(res, decode(now));
   });
 });
 
