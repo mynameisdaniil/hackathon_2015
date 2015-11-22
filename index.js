@@ -74,7 +74,7 @@ app.post('/new', function (req, res) {
             from_email: 'noreply@childtracker.co',
             to: [{email: req.body.email}],
             title: 'Your activation link',
-            text: 'http://childtracker.co/activate/' + id,
+            text: 'http://childtracker.co/#/activate/' + id,
             html: html
           }
         }, function () {
