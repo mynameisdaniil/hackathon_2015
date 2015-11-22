@@ -19,6 +19,10 @@ var reply = function (res, obj) {
   res.send(encode(obj) + '\n');
 };
 
+var rand_range = function (min, max) {
+  return Math.random() * (max - min) + min;
+};
+
 app.post('/new', function (req, res) {
   log(req.method, req.path, req.body);
   var key = 'users:' + req.body.email;
@@ -37,7 +41,7 @@ app.post('/new', function (req, res) {
           message: {
             from_email: 'noreply@childtracker.co',
             to: [{email: req.body.email}],
-            title: 'Hello world!',
+            title: 'Your activation link',
             text: 'http://childtracker.co/activate/' + id
           }
         }, function () {
@@ -57,7 +61,7 @@ app.post('/new', function (req, res) {
       log(arguments);
     });
 });
- 
+
 app.get('/:token/lists', function (req, res) {
   log(req.method, req.path, req.params.token);
   var key = 'lists:' + req.params.token;
@@ -157,7 +161,9 @@ app.get('/:token/play/stats', function (req, res) {
     .parMap(function (key) {
       redis.get(key, this);
     })
-    .map(function (item) { return decode(item); })
+    .map(function (item) {
+      return decode(item);
+    })
     .unflatten()
     .finally(function (e, list) {
       if (e) {
