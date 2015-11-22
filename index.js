@@ -1,5 +1,6 @@
 var Mandrill   = require('mandrill-api/mandrill');
 var mandrill   = new Mandrill.Mandrill('Wh-XyU94VKlYMWu4Sxt_SQ');
+var handlebars = require('handlebars');
 var express    = require('express');
 var bodyParser = require('body-parser');
 var uuid       = require('uuid').v4;
@@ -10,6 +11,9 @@ var log        = console.log;
 var err        = console.error;
 var encode     = JSON.stringify;
 var decode     = JSON.parse;
+
+var templateData = require('fs').readFileSync('./index.html', {encoding: 'utf8'});
+var template = handlebars.compile(templateData);
 
 var timeouts   = {};
 
@@ -62,13 +66,16 @@ app.post('/new', function (req, res) {
     })
     .par(function (result) {
       var that = this;
+      var html = template({base: 'http://childtracker.co', id: id});
+      log(html);
       if (result)
         mandrill.messages.send({
           message: {
             from_email: 'noreply@childtracker.co',
             to: [{email: req.body.email}],
             title: 'Your activation link',
-            text: 'http://childtracker.co/activate/' + id
+            text: 'http://childtracker.co/activate/' + id,
+            html: html
           }
         }, function () {
           log('>>', arguments);
