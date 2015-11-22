@@ -26,24 +26,27 @@ app.post('/new', function (req, res) {
       redis.setnx(key, id, this);
     })
     .par(function (result) {
-      var that = this;
-      mandrill.messages.send({
-        message: {
-          from_email: 'noreply@childtracker.co',
-          to: [{email: req.body.email}],
-          title: 'Hello world!',
-          text: 'http://childtracker.co/activate/' + id
-        }
-      }, function () {
-        log('>>', arguments);
-        that();
-      }, function (e) {
-        log('<<', arguments);
-        that(e);
-      });
-    })
-    .par(function () {
       redis.get(key, this);
+    })
+    .par(function (result) {
+      var that = this;
+      if (result)
+        mandrill.messages.send({
+          message: {
+            from_email: 'noreply@childtracker.co',
+            to: [{email: req.body.email}],
+            title: 'Hello world!',
+            text: 'http://childtracker.co/activate/' + id
+          }
+        }, function () {
+          log('>>', arguments);
+          that();
+        }, function (e) {
+          log('<<', arguments);
+          that(e);
+        });
+      else
+        this();
     })
     .finally(function (e, token) {
       if (e)
