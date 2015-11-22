@@ -1,4 +1,5 @@
-var sendgrid   = require('sendgrid')('UeeGQOnfRbiUOSCU6cJ-DA');
+var Mandrill   = require('mandrill-api/mandrill');
+var mandrill   = new Mandrill.Mandrill('Wh-XyU94VKlYMWu4Sxt_SQ');
 var express    = require('express');
 var bodyParser = require('body-parser');
 var uuid       = require('uuid').v4;
@@ -19,11 +20,29 @@ var reply = function (res, obj) {
 app.post('/new', function (req, res) {
   log(req.method, req.path, req.body);
   var key = 'users:' + req.body.email;
+  var id = uuid();
   yaff()
     .seq(function () {
-      redis.setnx(key, uuid(), this);
+      redis.setnx(key, id, this);
     })
-    .seq(function (result) {
+    .par(function (result) {
+      var that = this;
+      mandrill.messages.send({
+        message: {
+          from_email: 'noreply@childtracker.co',
+          to: [{email: req.body.email}],
+          title: 'Hello world!',
+          text: 'http://childtracker.co/activate/' + id
+        }
+      }, function () {
+        log('>>', arguments);
+        that();
+      }, function (e) {
+        log('<<', arguments);
+        that(e);
+      });
+    })
+    .par(function () {
       redis.get(key, this);
     })
     .finally(function (e, token) {
