@@ -113,9 +113,8 @@ app.post('/:token/lists/:list_id', function (req, res) {
 app.post('/:token/play/tracking', function (req, res) {
   log(req.method, req.path, req.params.token);
   var token = req.params.token;
-  var data = decode(req.body);
-  var time = data.time;
-  var now = data.now_watching;
+  var diff = parseInt(req.body.time, 10);
+  var now = req.body.now_watching;
   yaff()
     .par(function () {
       if (now)
@@ -123,9 +122,20 @@ app.post('/:token/play/tracking', function (req, res) {
       this();
     })
     .par(function () {
-      if (time)
-        return redis.set(); /////////////////////
-      this();
+      var date = Math.floor(Date.now() / 1000 / 60 / 60 / 24);
+      var key = 'stats:' + token + ':' + Math.floor(Date.now() / 1000 / 60 / 60 / 24);
+      if (diff)
+        yaff()
+          .seq(function () {
+            redis.get(key, this);
+          })
+          .seq(function (time) {
+            time = time ? decode(time):{time: 0};
+            redis.set(key, encode({date: date, time: time.time + diff}), this);
+          })
+          .finally(this);
+      else
+        this();
     })
     .finally(function (e) {
       if (e) {
@@ -133,6 +143,28 @@ app.post('/:token/play/tracking', function (req, res) {
         return res.sendStatus(500);
       }
       reply(res, {the_end: false});
+    });
+});
+
+app.get('/:token/play/stats', function (req, res) {
+  log(req.method, req.path, req.params.token);
+  var token = req.params.token;
+  yaff()
+    .seq(function () {
+      redis.keys('stats:' + token + ':*', this);
+    })
+    .flatten()
+    .parMap(function (key) {
+      redis.get(key, this);
+    })
+    .map(function (item) { return decode(item); })
+    .unflatten()
+    .finally(function (e, list) {
+      if (e) {
+        err(e);
+        return res.sendStatus(500);
+      }
+      reply(res, list);
     });
 });
 
