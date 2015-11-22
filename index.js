@@ -11,6 +11,8 @@ var err        = console.error;
 var encode     = JSON.stringify;
 var decode     = JSON.parse;
 
+var timeouts   = {};
+
 app.use(bodyParser.json()); 
 
 var reply = function (res, obj) {
@@ -116,10 +118,13 @@ app.post('/:token/play/tracking', function (req, res) {
   var now = data.now_watching;
   yaff()
     .par(function () {
-      redis.set('session:' + token + ':now', now, this);
+      if (now)
+        return redis.set('session:' + token + ':now', now, this);
+      this();
     })
     .par(function () {
-      // redis.add('');
+      if (time)
+        return redis.set(); /////////////////////
       this();
     })
     .finally(function (e) {
@@ -149,8 +154,10 @@ app.post('/:token/play/control', function (req, res) {
   log(req.method, req.path, req.params.token);
   var key = 'session:' + req.params.token + ':control';
   var data = req.body;
+  if (!data.timeout && timeouts[req.params.token])
+    clearTimeout(timeouts[req.params.token]);
   if (data.timeout) {
-    setTimeout(function () {
+    timeouts[req.params.token] = setTimeout(function () {
       redis.set(key, encode({the_end: true}));
     }, data.timeout);
     return res.sendStatus(200);
