@@ -23,6 +23,32 @@ var rand_range = function (min, max) {
   return Math.random() * (max - min) + min;
 };
 
+var extend = function (obj1, obj2) {
+  return Object.keys(obj2).reduce(function (obj1, key) {
+    obj1[key] = obj2[key];
+    return obj1;
+  }, obj1);
+};
+
+var update_object = function (key, update, cb, def) {
+  def = def || {};
+  yaff()
+    .seq(function () {
+      redis.get(key, this);
+    })
+    .seq(function (data) {
+      var obj;
+      if (data)
+        obj = decode(data);
+      else
+        obj = def;
+      var updated = extend(obj, update);
+      log('>>updated', updated, obj, update, data);
+      redis.set(key, encode(updated), this);
+    })
+    .finally(cb);
+};
+
 app.post('/new', function (req, res) {
   log(req.method, req.path, req.body);
   var key = 'users:' + req.body.email;
@@ -196,17 +222,20 @@ app.post('/:token/play/control', function (req, res) {
     clearTimeout(timeouts[req.params.token]);
   if (data.timeout) {
     timeouts[req.params.token] = setTimeout(function () {
-      redis.set(key, encode({the_end: true}));
+      update_object(key, {the_end: true}, function (e) {
+        if (e)
+          err(e);
+      });
     }, data.timeout);
     return res.sendStatus(200);
   }
-  redis.set(key, encode(req.body), function (e) {
+  update_object(key, req.body, function (e) {
     if (e) {
       err(e);
       return res.sendStatus(500);
     }
     res.sendStatus(200);
-  });
+  }, {the_end: false});
 });
 
 app.get('/flushall', function (req, res) {
@@ -230,7 +259,7 @@ app.get('/:token/play/control', function (req, res) {
     log('command:', command);
     if (!command)
       return reply(res, {the_end: false});
-    reply(res, command);
+    reply(res, decode(command));
   });
 });
 
