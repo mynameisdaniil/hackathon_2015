@@ -155,7 +155,7 @@ app.post('/:token/play/tracking', function (req, res) {
   yaff()
     .par(function () {
       if (now)
-        return redis.set('session:' + token + ':now', now, this);
+        return redis.set('session:' + token + ':now', ecnode(now), this);
       this();
     })
     .par(function () {
