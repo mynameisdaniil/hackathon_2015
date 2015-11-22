@@ -148,7 +148,7 @@ app.post('/:token/lists/:list_id', function (req, res) {
 });
 
 app.post('/:token/play/tracking', function (req, res) {
-  log(req.method, req.path, req.params.token);
+  log(req.method, req.path, req.params.token, req.body);
   var token = req.params.token;
   var diff = parseInt(req.body.time, 10);
   var now = req.body.now_watching;
